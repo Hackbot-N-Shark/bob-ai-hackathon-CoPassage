@@ -1,26 +1,19 @@
 # Screenshots
 
-Place your application screenshots in this folder.
+Place at least 3 screenshots of the running application in this directory.
 
-## Naming Convention
+Name them sequentially:
 
-Name your screenshots sequentially so they appear in logical order:
+```
+01-user-dashboard.png
+02-find-ride.png
+03-offer-ride.png
+04-live-tracking.png
+05-find-passengers.png
+06-admin-panel.png
+07-staff-sos-alerts.png
+```
 
-  01-landing-page.png       ← First thing a user sees
-  02-main-feature.png       ← Your primary feature in action
-  03-output-or-results.png  ← The result / value delivered
-  04-additional-feature.png ← Any other notable screen
+Screenshots should show the actual running application — not mockups.
 
-## Requirements
-
-- Minimum: 3 screenshots
-- Format: PNG or JPG
-- Show the application running with real (or realistic mock) data
-- Avoid screenshots of empty states or placeholder data
-- Captions are not required but appreciated
-
-## Tips
-
-- Use a consistent browser window size across all screenshots
-- Highlight key UI elements with arrows/circles if helpful (use any image editor)
-- Include a screenshot showing IBM technology integration if applicable
+> Screenshots are pending the demo recording session.

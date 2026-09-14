@@ -1,30 +1,13 @@
 # Presentation
 
-Place your slide deck in this folder.
+Add the slide deck here as `slides.pdf` (preferred) or `slides.pptx`.
 
-## Accepted Formats
+The deck should cover (in order):
+1. **Problem** — who, what, why it hurts (traffic congestion, solo commuting costs, safety)
+2. **Solution** — what CoPassage built and how it works
+3. **Architecture** — three-portal system, Supabase Realtime, Leaflet map, Nominatim geocoding
+4. **IBM Bob integration** — how Bob was used as the AI-assisted dev environment throughout the build
+5. **Live demo highlights** — key screens from the running application
+6. **Impact** — cost savings, emissions reduction, city-level safety oversight potential
 
-  slides.pdf      ← Preferred (universally viewable)
-  slides.pptx     ← Acceptable
-  slides.key      ← Acceptable (macOS Keynote)
-
-Rename your file to `slides.pdf` (or `slides.pptx`) so the evaluation
-pipeline can locate it reliably.
-
-## Recommended Slide Structure (5–8 slides)
-
-  Slide 1: Title — Project name, team name, track
-  Slide 2: Problem — What problem? Who has it? Why does it matter?
-  Slide 3: Solution — What you built in one clear diagram or screenshot
-  Slide 4: Architecture — How the system works technically
-  Slide 5: Demo / Key Feature — Screenshot or flow of your best feature
-  Slide 6: IBM Technologies — Specifically how you used them
-  Slide 7: Results / Impact — What does success look like? Any metrics?
-  Slide 8: Team — Names, roles, what each person built
-
-## Tips
-
-- Keep slides visual — diagrams beat bullet points
-- One idea per slide
-- Font size minimum 24pt for readability
-- Do not paste large code blocks into slides — reference the repo instead
+> Slide deck is pending final recording session.

@@ -1,15 +1,13 @@
-https://youtu.be/your-demo-video-link-here
+PENDING — demo video will be added before submission deadline.
 
-Replace the URL above with a link to your demo video.
+The video will show:
+- Application starting from npm run dev
+- User registration and vehicle registration (driver setup)
+- Posting a ride offer
+- Passenger searching and requesting a seat
+- Driver accepting the request and starting the live tracking session
+- Passenger watching the driver's moving car icon on the map in real time
+- City Staff portal: viewing SOS alerts and escalations
+- Super Admin panel: user management and matches overview
 
-Accepted platforms:
-  - YouTube (public or unlisted)
-  - Loom (https://www.loom.com/share/...)
-  - IBM Box (https://ibm.box.com/s/...)
-  - Google Drive (set to "Anyone with the link can view")
-
-Video requirements:
-  - Length: 3–5 minutes maximum
-  - Must show the application running (not just slides)
-  - Should walk through at least one key feature end-to-end
-  - Audio narration strongly recommended
+Accepted platforms: YouTube (unlisted), Loom, Google Drive (view-only)
