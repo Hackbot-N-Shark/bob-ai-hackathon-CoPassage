@@ -1,133 +1,48 @@
 # Architecture
 
-## System Architecture
+CoPassage relies on a strictly serverless architecture leveraging Firebase and Supabase, with heavy utilization of PostgreSQL Row-Level Security (RLS) and Triggers to enforce business logic natively at the database level.
+
+## System Diagram
 
 ```mermaid
 graph TD
-    subgraph Browser
-        A1[Passenger / Driver\nNext.js Client]
-        A2[City Staff\nNext.js Client]
-        A3[Super Admin\nNext.js Client]
-    end
-
-    subgraph "Next.js 16 — App Router (src/)"
-        B1[Server Components\ndata fetching]
-        B2[Server Actions\nmutations]
-        B3[Client Components\nLiveMap, subscriptions]
-        B4[Middleware — proxy.ts\nsession refresh + route guards]
-    end
-
-    subgraph "Supabase (hosted PostgreSQL)"
-        C1[Auth\nJWT + cookie sessions]
-        C2[PostgreSQL\nRLS-enforced tables]
-        C3[Realtime Broadcast\nlive location channels]
-    end
-
-    subgraph "External Free APIs"
-        D1[Nominatim\nOpenStreetMap geocoding]
-        D2[OpenStreetMap Tile Server\nLeaflet map tiles]
-    end
-
-    A1 -->|HTTP/HTTPS| B4
-    A2 -->|HTTP/HTTPS| B4
-    A3 -->|HTTP/HTTPS| B4
-    B4 --> B1
-    B4 --> B2
-    B4 --> B3
-
-    B1 -->|Supabase SSR client| C2
-    B2 -->|Supabase SSR client| C2
-    B2 -->|Nominatim fetch| D1
-    B3 -->|Supabase browser client| C3
-    B3 -->|Tile requests| D2
-
-    C1 -->|JWT validation| C2
-    C2 -->|RLS policies| C2
-    C3 -.->|broadcast payload| B3
+    A[Vite + React Client] -->|OTP Login| B[Firebase Auth]
+    B -->|Provides JWT Token| A
+    A -->|Passes Token| C[Supabase Client]
+    C -->|Reads/Writes| D[PostgreSQL DB]
+    C -->|Listens to| E[Supabase Realtime]
+    D -->|Fires| F[check_and_complete_ride Trigger]
 ```
 
-## Components
+## Core Components
 
-| Component | Technology | Responsibility |
-|---|---|---|
-| End-User App | Next.js 16 App Router | Dashboard, find/offer rides, live tracking, SOS, issue reporting |
-| City Staff Portal | Next.js 16 App Router | SOS alert triage, escalation management, staff roster, case history |
-| Super Admin Panel | Next.js 16 App Router | User & role management, global match/payment overview, all escalations |
-| Middleware | Next.js Middleware (`proxy.ts`) | Session cookie refresh (Supabase SSR), role-based route guards for `/app`, `/staff`, `/admin` |
-| Database | Supabase / PostgreSQL | Stores all persistent data; Row Level Security enforces per-role data isolation |
-| Auth | Supabase Auth | JWT-based sessions via HTTP-only cookies; `super_admin`, `city_staff`, `user` roles |
-| Realtime | Supabase Realtime Broadcast | Streams driver GPS coordinates to passenger without writing to disk |
-| Map | Leaflet + react-leaflet | Interactive map rendered in the browser; dynamically imported (SSR disabled) |
-| Map Tiles | OpenStreetMap | Free tile server via `{s}.tile.openstreetmap.org`; no API key required |
-| Geocoding | Nominatim (OpenStreetMap) | Converts address text to `lat/lng` on ride offer and broadcast creation |
-| Distance Calc | Haversine formula (client-side) | Sorts Find Passengers feed by distance from driver's GPS; runs in-browser after DB fetch |
+| Technology | Responsibility |
+|------------|----------------|
+| **Vite & React** | Frontend rendering, Leaflet map integration, Geolocation `watchPosition` API handling. |
+| **Firebase Auth** | Handles Phone OTP authentication and returns a JWT token. |
+| **Supabase Client** | Passes the Firebase JWT token to the Supabase backend to authenticate API requests. |
+| **PostgreSQL (Supabase)** | Stores all relational data. Uses Row-Level Security to isolate ride data strictly to matched participants. |
+| **Supabase Realtime** | Subscribes to table updates (`rider_open_posts`, `join_requests`, `ride_messages`) to push live coordinates and chat messages to clients without polling. |
 
-## Data Flow — Key Scenarios
+## Data Flow & Database Schema
 
-### Ride Offer with Geocoding
-1. Driver submits Offer Ride form (origin text, destination text, city, time, seats, price)
-2. `createRideOffer` Server Action calls `geocodeAddress(origin, city)` and `geocodeAddress(destination, city)` in parallel via Nominatim
-3. Coordinates (`origin_lat/lng`, `dest_lat/lng`) are stored alongside the offer in `ride_offers`
-4. Row is instantly visible to searching passengers via the `ride_offers: public can read active` RLS policy
+The database consists of 5 core tables in the `public` schema:
 
-### Passenger Broadcast + Proximity Feed
-1. Passenger submits Broadcast Ride form → `createRideBroadcast` geocodes and inserts into `ride_broadcasts`
-2. Driver opens Find Passengers → `searchBroadcasts(city)` returns active broadcasts for that city
-3. Browser requests driver's GPS via `navigator.geolocation.getCurrentPosition`
-4. `calculateDistance` (Haversine) computes km to each broadcast's `origin_lat/lng`
-5. Broadcasts re-sorted in-browser; if GPS resolves after the initial fetch, a React effect triggers a re-sort automatically
+1. **`rider_open_posts`**: Stores the active broadcast from the Host. Includes live coordinates, destination, seats, and a `host_marked_complete` flag.
+2. **`join_requests`**: Stores requests from nearby commuters. Includes a `rider_marked_complete` flag. Requester coordinates are strictly hidden (`NULL`) until the Host accepts the request.
+3. **`ride_messages`**: Realtime in-ride chat table.
+4. **`rider_sos_events`**: Direct-write table for SOS triggers. By writing to the DB *before* dialing hotlines, we ensure an audit trail exists even if the call fails.
+5. **`rider_ratings`**: Post-ride commuter reviews.
 
-### Match Creation + Live Tracking
-1. Driver accepts a seat request → `acceptRequest` Server Action:
-   - Updates `ride_requests.status = 'accepted'`
-   - Inserts a row into `matches` (returns `match.id`)
-   - Decrements `ride_offers.available_seats`
-2. Driver's My Rides card shows **"Start Ride"** → navigates to `/app/drive/[matchId]`
-3. Driver page subscribes to channel `live-location-{matchId}` via Supabase Realtime and calls `navigator.geolocation.watchPosition`
-4. Each GPS update is sent as a Broadcast payload `{ lat, lng }` — never written to the database
-5. Passenger's `/app/ride/[matchId]` page subscribes to the same channel; each payload updates `driverLoc` state → `LiveMap` re-renders with a new marker position
+## Mutual Completion Architecture (Security Note)
 
-## Database Schema
+To ensure neither party can unilaterally complete a ride prematurely, the system uses a **Mutual Ride Completion Architecture**:
+1. Host sets `rider_open_posts.host_marked_complete = true`.
+2. Co-rider sets `join_requests.rider_marked_complete = true`.
+3. A Postgres Trigger (`check_and_complete_ride`) runs with `SECURITY DEFINER` privileges upon any update to these tables. It atomically transitions the ride `status` to `'completed'` when both flags are true.
 
-```
-profiles         — user accounts, roles, driver verification status
-vehicles         — registered driver vehicles
-ride_offers      — driver-posted routes with coords, seats, price
-ride_requests    — passenger seat requests on an offer
-matches          — confirmed driver+passenger pairings
-ride_broadcasts  — passenger-initiated "I need a ride" posts with coords
-payments         — payment records linked to matches
-escalations      — user-reported issues (visible to city staff + admin)
-sos_alerts       — emergency alerts with GPS coords (visible to city staff)
-```
+## Route Matching Logic
 
-## Row Level Security Summary
-
-Every table has RLS enabled. Key policies:
-
-| Table | Rule |
-|---|---|
-| `profiles` | Users read/update their own row; super_admin reads/updates all |
-| `ride_offers` | Any authenticated user reads active offers; only driver can write own offers |
-| `ride_requests` | Rider sees own requests; driver sees requests on their offers |
-| `ride_broadcasts` | Any authenticated user reads active broadcasts; only passenger can write own |
-| `matches` | Driver and rider see their own matches; staff/admin see city-scoped or all |
-| `escalations` | Staff see city-scoped; super_admin sees all; users can insert |
-| `sos_alerts` | User can insert and see own; staff/admin see city-scoped or all |
-
-## Security Notes
-
-- All credentials stored in environment variables; `.env.local` is gitignored
-- Supabase anon key is safe to expose (restricted by RLS); service-role key is server-only
-- No user PII beyond name and email is stored
-- Session cookies are HTTP-only (managed by Supabase SSR); no JWT in `localStorage`
-- Nominatim requests include a `User-Agent` header identifying the project as required by OSM policy
-
-## Scalability Notes
-
-The current architecture is suitable for a hackathon MVP and small production load:
-
-- **Next.js** is stateless and can be horizontally scaled or deployed to Vercel edge functions with no code changes
-- **Supabase Realtime Broadcast** is ephemeral (not persisted) — it scales with Supabase's own infrastructure, not with the number of matches
-- **Geocoding bottleneck:** Nominatim has a 1 req/sec rate limit for non-registered usage; a production app would batch geocoding or switch to a paid provider (Google Maps, Mapbox)
-- **Haversine client-side sort** works at city scale (hundreds of rides); PostGIS `ST_Distance` queries would be needed for nationwide proximity search
+Because CoPassage operates at zero marginal cost without paid routing APIs (like Google Maps), matching relies on client-side and SQL heuristics:
+- **Proximity**: Haversine distance from the user to the candidate must be ≤ 2km.
+- **Bearing Alignment**: Forward azimuth bearing from origin→destination is computed using spherical trigonometry. Angular difference must be ≤ 25°.

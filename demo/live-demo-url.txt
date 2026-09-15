@@ -1,8 +1,6 @@
-NOT DEPLOYED — run locally using docs/setup-guide.md
+https://copsaage.netlify.app/
 
-The application requires a Supabase project (free tier) and cannot be deployed
-without environment variables pointing to a live Supabase instance.
-
-To evaluate the project:
+To evaluate the project locally:
 1. Follow the step-by-step instructions in docs/setup-guide.md
-2. Watch the demo video (see demo/demo-video-link.txt) for a full walkthrough
+2. Ensure you have properly configured the Firebase Auth and Supabase environment variables
+3. Watch the demo video (see demo/demo-video-link.txt) for a full walkthrough of the peer-to-peer Rickshaw sharing flow

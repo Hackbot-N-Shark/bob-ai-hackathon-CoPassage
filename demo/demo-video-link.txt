@@ -1,13 +1,10 @@
-PENDING — demo video will be added before submission deadline.
+https://youtu.be/GKQZJfecRrc?si=OPAyjt3AG9iHZ5_y
 
 The video will show:
 - Application starting from npm run dev
-- User registration and vehicle registration (driver setup)
-- Posting a ride offer
-- Passenger searching and requesting a seat
-- Driver accepting the request and starting the live tracking session
-- Passenger watching the driver's moving car icon on the map in real time
-- City Staff portal: viewing SOS alerts and escalations
-- Super Admin panel: user management and matches overview
-
-Accepted platforms: YouTube (unlisted), Loom, Google Drive (view-only)
+- A rider signing in via Firebase OTP
+- Finding an auto-rickshaw offline and broadcasting the ride
+- A second commuter nearby seeing the broadcast and requesting to join
+- The host accepting the request, initiating mutual location sharing
+- Both commuters independently confirming the ride to trigger the mutual completion logic
+- The SOS feature capturing exact GPS coordinates

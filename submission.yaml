@@ -20,51 +20,45 @@ submission:
   title: "CoPassage"
 
   problem_statement: >
-    Urban commuters in Indian cities waste significant time and money travelling
-    alone in under-filled cars while public transport is overcrowded. There is no
-    trusted, city-aware platform that connects verified drivers with nearby
-    passengers in real time, leading to increased traffic, pollution, and
-    daily commute costs for millions of working professionals and students.
+    Urban commuters who rely on auto-rickshaws frequently travel alone and pay
+    the full fare because there's no easy way to find nearby people heading in the
+    same direction. Meanwhile, other commuters struggle to hail autos. This lack
+    of commuter-to-commuter coordination leads to wasted money, increased traffic,
+    and higher carbon emissions.
 
   solution_summary: >
-    CoPassage is a full-stack carpooling platform built on Next.js and Supabase
-    that lets drivers offer seats on their existing routes and passengers either
-    search for matching rides or broadcast a ride need to local drivers. Once a
-    match is confirmed, the driver streams their live GPS location via Supabase
-    Realtime so the passenger can watch the car approach on an interactive
-    OpenStreetMap-powered map — no paid API keys required.
+    CoPassage is a peer-to-peer auto-rickshaw fare-splitting platform that connects
+    commuters entirely offline from drivers. A rider who boards an auto broadcasts
+    their route; nearby users see this on a live OpenStreetMap and can request to
+    join. The app facilitates the match, mutual location sharing, and chat, allowing
+    them to split the metered fare directly.
 
   key_features:
-    - "Dual-role app: verified drivers offer rides; passengers search or broadcast a need"
-    - "Live GPS tracking: driver streams location via Supabase Realtime Broadcast, passenger sees a moving car icon on Leaflet/OpenStreetMap"
-    - "Free geocoding via Nominatim (OpenStreetMap) converts text addresses to coordinates for proximity-sorted passenger feeds"
-    - "Three-portal architecture: End-User app, City Staff portal, Super Admin panel — each with independent auth and Role-Level Security"
-    - "Emergency SOS button that captures GPS coordinates and instantly raises an alert visible to City Staff"
+    - "Peer-to-peer offline hailing: the app focuses strictly on commuter coordination without any driver dispatch or tracking."
+    - "Live location broadcasting: a host's location is streamed via Supabase Realtime to a Leaflet-powered map."
+    - "Privacy-first matching: a joining rider's exact location is protected until a mutual match is confirmed by the host."
+    - "Mutual ride completion: atomic Postgres triggers ensure rides are completed securely when both parties confirm."
+    - "One-tap emergency SOS: writes exact GPS coordinates directly to the database before launching hotlines."
 
   tech_stack:
     languages: ["TypeScript"]
-    frameworks: ["Next.js 16 (App Router)", "React 19", "Tailwind CSS 4", "react-leaflet"]
+    frameworks: ["Vite", "React 19", "Tailwind CSS 4", "react-leaflet"]
     ibm_technologies: ["IBM Bob (used as the AI-assisted development environment throughout the build)"]
-    databases: ["Supabase (PostgreSQL with Row Level Security)", "Supabase Realtime (Broadcast channel for live location)"]
-    other: ["Leaflet + OpenStreetMap (free map tiles, no API key)", "Nominatim (free geocoding API)", "Lucide React", "Sonner (toast notifications)"]
+    databases: ["Supabase (PostgreSQL with Row Level Security)", "Supabase Realtime (Broadcast channels)"]
+    other: ["Firebase Auth", "Leaflet + OpenStreetMap (free map tiles)", "Google GenAI API"]
 
   what_we_are_most_proud_of: >
-    The end-to-end live tracking flow: a driver accepts a passenger request on
-    My Rides, receives a "Start Ride" button that navigates them to a full-screen
-    map, their browser's navigator.geolocation feeds coordinates into a Supabase
-    Realtime Broadcast channel, and the passenger's "Track Ride" view instantly
-    shows a moving car icon without any paid mapping or WebSocket infrastructure.
-    The entire real-time pipeline runs at zero marginal cost.
+    The strict separation of concerns in our commuter-to-commuter model. By 
+    removing the driver from the software loop, we built a highly scalable, zero-
+    onboarding system. We are particularly proud of the complex Postgres trigger 
+    logic that handles atomic mutual ride completion securely across two separate 
+    RLS-protected tables without exposing write permissions to either party.
 
   known_limitations: >
-    Driver verification is instant (MVP shortcut) — production would queue
-    registrations for City Staff approval. Seat decrement on acceptance is not
-    atomic (no Postgres function), so a race condition exists under concurrent
-    requests. Payment processing is UI-only with no real payment gateway
-    integration. City list is hardcoded to four Indian cities; a production
-    version would use a dynamic city registry. The find-passengers feed does not
-    yet support filtering or pagination. The presentation slide deck is a
-    placeholder pending final recording. No automated test suite exists.
+    Location tracking accuracy depends heavily on the device's GPS hardware and 
+    browser permissions, especially on iOS Safari where background tracking can be 
+    limited. Route overlap heuristic uses straight-line bearing rather than actual 
+    road networks to save API costs. There is no automated test suite.
 
 # =============================================================================
 # ARTIFACT LOCATIONS

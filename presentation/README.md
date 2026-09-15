@@ -10,4 +10,3 @@ The deck should cover (in order):
 5. **Live demo highlights** — key screens from the running application
 6. **Impact** — cost savings, emissions reduction, city-level safety oversight potential
 
-> Slide deck is pending final recording session.
