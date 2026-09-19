@@ -41,11 +41,11 @@ submission:
     - "One-tap emergency SOS: writes exact GPS coordinates directly to the database before launching hotlines."
 
   tech_stack:
-    languages: ["TypeScript"]
-    frameworks: ["Vite", "React 19", "Tailwind CSS 4", "react-leaflet"]
+    languages: ["TypeScript", "SQL"]
+    frameworks: ["Vite", "React 19", "Tailwind CSS 4", "React Router", "react-leaflet", "@vis.gl/react-google-maps"]
     ibm_technologies: ["IBM Bob (used as the AI-assisted development environment throughout the build)"]
     databases: ["Supabase (PostgreSQL with Row Level Security)", "Supabase Realtime (Broadcast channels)"]
-    other: ["Firebase Auth", "Leaflet + OpenStreetMap (free map tiles)", "Google GenAI API"]
+    other: ["Firebase Auth", "Razorpay Payment Gateway", "Leaflet + OpenStreetMap (free map tiles)", "Google GenAI API"]
 
   what_we_are_most_proud_of: >
     The strict separation of concerns in our commuter-to-commuter model. By 
